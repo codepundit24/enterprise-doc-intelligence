@@ -1,0 +1,42 @@
+services:
+  # 1. PostgreSQL Database with pgvector Extension
+  postgres-db:
+    image: pgvector/pgvector:pg16
+    container_name: enterprise_postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: doc_intelligence
+      POSTGRES_USER: postgres_admin
+      POSTGRES_PASSWORD: secure_vector_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgvector_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_admin -d doc_intelligence"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. FastAPI Orchestration & RAG Gateway
+  api-service:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: enterprise_rag_api
+    restart: unless-stopped
+    command: ["uvicorn", "app.main:app", "--host","0.0.0.0", "--port","8000","--reload"]
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres_admin:secure_vector_password@postgres-db:5432/doc_intelligence
+    volumes:
+      - ./backend/app:/app/app
+      - huggingface_cache:/root/.cache/huggingface
+
+volumes:
+  pgvector_data:
+  huggingface_cache:

@@ -1,0 +1,58 @@
+name: Enterprise Doc Engine CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: doc_intelligence
+          POSTGRES_USER: postgres_admin
+          POSTGRES_PASSWORD: secure_vector_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev
+
+      - name: Install Python Dependencies
+        run: |
+          cd backend
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest Test Suite
+        env:
+          DATABASE_URL: postgresql://postgres_admin:secure_vector_password@localhost:5432/doc_intelligence
+        run: |
+          cd backend
+          pytest -v test_main.py
+
+      - name: Validate Multi-Stage Docker Build
+        run: |
+          docker build -t enterprise-doc-engine:latest ./backend
