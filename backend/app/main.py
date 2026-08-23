@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List
 from pydantic import BaseModel
+from fastapi.responses import FileResponse
+import os
 
 from app.database import get_db, init_db
 from app.models import Document, DocumentChunk
@@ -25,6 +27,16 @@ app = FastAPI(title="Enterprise Document Intelligence & Semantic Search Engine",
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "enterprise-doc-engine"}
+
+@app.get("/", response_class=FileResponse)
+def serve_frontend():
+    """Serve the document intelligence dashboard"""
+    frontend_path = os.path.join(os.path.dirname(__file__), "../../frontend/index.html")
+    if not os.path.exists(frontend_path):
+        # Fallback for docker runner directory
+        frontend_path = "/app/frontend/index.html"
+    return FileResponse(frontend_path)
+
 
 @app.post("/documents/upload")
 async def upload_document(file: UploadFile = File(...), db:Session =Depends(get_db)):

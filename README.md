@@ -7,57 +7,60 @@ A production-grade, containerized semantic search and document parsing pipeline 
 ## Architecture Overview
 
 ```text
- ┌─────────────────────────┐
- │     Client / Swagger    │
- └────────────┬────────────┘
-              │
- ┌────────────▼────────────┐
- │   FastAPI Orchestrator  │  <── Multi-stage Lean Build
- │ (Ingest / Chunk / Embed)│
- └─────┬─────────────┬─────┘
-       │             │
- ┌─────▼──────────┐  │
- │ PostgreSQL 16  │  │
- │   + pgvector   │  │
- └────────────────┘  │
-       ┌─────────────▼─────────┐
-       │ SentenceTransformer   │
-       │ (all-MiniLM-L6-v2)    │
-       └───────────────────────┘
+ ┌────────────────────────────────────────┐
+ │   Interactive Web Dashboard (UI) / API  │
+ └───────────────────┬────────────────────┘
+                     │
+ ┌───────────────────▼────────────────────┐
+ │         FastAPI Orchestrator           │  <── Multi-stage Lean Build
+ │    (Ingest / Chunk / Embed / Serve)    │
+ └─────────────┬─────────────────┬────────┘
+               │                 │
+ ┌─────────────▼──────────────┐  │
+ │ PostgreSQL 16 + pgvector   │  │
+ │   (Relational + Vectors)   │  │
+ └────────────────────────────┘  │
+       ┌─────────────────────────▼────────────┐
+       │ SentenceTransformer (all-MiniLM-L6-v2)│
+       └──────────────────────────────────────┘
 ```
 
 
 ## Tech Stack
-API Engine: FastAPI, Pydantic, Uvicorn
+
+API Engine & Serving: FastAPI, Pydantic, Uvicorn
 
 Database & Vector Store: PostgreSQL 16 with pgvector
 
+Frontend: TailwindCSS, HTML5, Vanilla JavaScript
+
 ORM: SQLAlchemy 2.0
 
-Embeddings: sentence-transformers (all-MiniLM-L6-v2 - 384 dimensions)
+Embeddings Model: sentence-transformers (all-MiniLM-L6-v2 - 384 dimensions)
 
-Document Parsing: pypdf
+Document Ingestion: pypdf
 
 Containerization: Docker, Docker Compose (Multi-stage builds)
 
-CI/CD: GitHub Actions (Pytest, Linting, Multi-stage Docker Build Verification)
+CI/CD: GitHub Actions (Pytest against PostgreSQL service container, Multi-stage Docker Build Verification)
 
 
 ## Key Features
-Hybrid Data Storage: Combines relational document metadata with vector embeddings in a single PostgreSQL database instance.
+Hybrid Relational & Vector Storage: Combines relational document metadata and vector embeddings in a single PostgreSQL instance.
 
-Vector Indexing & Cosine Distance: Uses pgvector cosine operator (<=>) for low-latency semantic information retrieval.
+Vector Indexing & Cosine Distance: Uses pgvector cosine operator (<=>) for low-latency semantic context retrieval.
 
-Multi-Stage Dockerfile: Separates compilation tools (libpq-dev, build-essential) from the runtime stage, significantly reducing final image size.
+Interactive Dashboard: Dark-mode dashboard for drag-and-drop document ingestion and semantic exploration.
 
-Resilient Startup & Healthchecks: Automatic connection retry loops for database availability during container orchestration.
+Multi-Stage Dockerfile: Separates build dependencies (libpq-dev, build-essential) from runtime, optimizing image footprint.
 
 Hot-Reloading in Development: Live mounted backend volume with instant reload capability.
+
 
 ## Quick Start with Docker
 1. Clone the repository
 ```bash
-git clone [https://github.com/](https://github.com/)<your-username>/enterprise-doc-intelligence.git
+git clone [https://github.com/codepundit24/enterprise-doc-intelligence.git](https://github.com/codepundit24/enterprise-doc-intelligence.git)
 cd enterprise-doc-intelligence
 ```
 
@@ -68,9 +71,11 @@ docker compose up --build
 
 ## The services will initialize:
 
-API Service & Swagger UI: http://localhost:8000/docs
+Interactive Web Dashboard: http://localhost:8000/
 
-PostgreSQL: localhost:5432
+Interactive API Swagger Docs: http://localhost:8000/docs
+
+PostgreSQL pgvector Database: localhost:5432
 
 ## API Endpoints
 
@@ -110,3 +115,6 @@ Unit tests verify endpoint status codes and file format validation.
 # Run tests locally
 pytest -v backend/test_main.py
 ```
+
+A GitHub Actions workflow (.github/workflows/ci.yml) runs on every push to main, validating code quality, running unit tests against a temporary pgvector service container, and building the production Docker image.
+
