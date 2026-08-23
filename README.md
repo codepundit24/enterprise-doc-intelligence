@@ -1,3 +1,15 @@
+## System Architecture & Live Previews
+
+| Interactive Web Dashboard | Swagger API Execution |
+|:---:|:---:|
+| ![Dashboard Preview](assets/dashboard_preview.png) | ![Swagger API](assets/swagger_api.png) |
+
+| CI/CD Pipeline (GitHub Actions) | Docker Multi-Container Orchestration |
+|:---:|:---:|
+| ![GitHub Actions](assets/github_actions_ci.png) | ![Docker Containers](assets/docker_containers.png) |
+
+
+
 # Enterprise Document Intelligence & Semantic Search Engine
 
 A production-grade, containerized semantic search and document parsing pipeline built with **FastAPI**, **PostgreSQL (pgvector)**, and **Sentence-Transformers**. It ingests unstructured text/PDF documents, creates high-dimensional vector embeddings locally, and executes cosine similarity searches in PostgreSQL.
