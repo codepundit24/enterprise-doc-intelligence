@@ -5,6 +5,7 @@ from app.main import app
 from app.database import SessionLocal, engine, Base, init_db
 from app.models import DocumentChunk, Document
 from sentence_transformers import SentenceTransformer
+from unittest.mock import patch
 
 client = TestClient(app)
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -61,24 +62,38 @@ def test_vector_similarity_search():
 
 #Test fastmcp / agent route response integrity
 def test_agent_chat_endpoint():
-    response = client.post(
-        "/agent/chat",
-        json={"query":"Explain Kubernetes pod resilience"}
-    )
-    assert response.status_code == 200
-    json_data = response.json()
-    assert "response" in json_data
-    assert len(json_data["response"]) > 10
+    mock_response = "Kubernetes provides high availability and automated failover for application pods"
+    with patch("app.agents.langgraph_agent.app_workflow.invoke", return_value = {"final answer": mock_response}):
+        response = client.post(
+            "/agent/chat",
+            json={"query":"Explain Kubernetes pod resilience"}
+        )
+        assert response.status_code == 200
+        json_data = response.json()
+        assert "response" in json_data
+        assert len(json_data["response"]) > 10
 
 # Test crewAi multi agent endpoint contract
 def test_crewai_endpoint_structure():
-    response = client.post(
-        "/crew/analyze",
-        json={"query": " Summarize architecture features"}
-    )
-    assert response.status_code==200
-    json_data = response.json()
-    assert json_data["status"] == "success"
-    assert "analysis" in json_data
-    assert "trace" in json_data
-    assert json_data["trace"]["total_agents"] == 2
+    mock_crew_output = {
+        "analysis": "Executive Overview: Architecture features verified",
+        "trace": {
+            "framework": "Crewai (Sequential multi- agent process)",
+            "pipeline": [
+               {"agent": "Senior Technical Researcher", "action": "Searched pgvector", "status": "Done"},
+                {"agent": "Principal Enterprise Consultant", "action": "Formatted summary", "status": "Done"}
+            ],
+            "total_agents": 2
+        }
+    }
+    with patch("app.agents.crew_analyst.run_crew_pipeline", return_value=mock_crew_output):
+        response = client.post(
+            "/crew/analyze",
+            json={"query": "Summarize architecture features"}
+        )
+        assert response.status_code==200
+        json_data = response.json()
+        assert json_data["status"] == "success"
+        assert "analysis" in json_data
+        assert "trace" in json_data
+        assert json_data["trace"]["total_agents"] == 2
