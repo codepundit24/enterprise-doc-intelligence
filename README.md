@@ -2,7 +2,7 @@
 
 | Interactive Web Dashboard | Swagger API Execution |
 |:---:|:---:|
-| ![Dashboard Preview](assets/dashboard_preview.png) | ![Swagger API](assets/swagger_api.png) |
+| ![Dashboard Preview](assets/dashboard_preview.png)(assets/dashboard_langgraph.png) | ![Swagger API](assets/swagger_api.png) |
 
 | CI/CD Pipeline (GitHub Actions) | Docker Multi-Container Orchestration |
 |:---:|:---:|

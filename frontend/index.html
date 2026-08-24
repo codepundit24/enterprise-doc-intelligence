@@ -3,260 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise RAG & Multi-Agent Intelligence</title>
-    
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%234f46e5'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='46' font-weight='800' fill='white'>ED</text></svg>">
+    <title>EnterpriseDocEngine</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23059669'/><path d='M10 8h8l6 6v10a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2z' fill='%23047857'/><path d='M18 8v6h6' fill='%23065f46'/><path d='M16 13l-3 5h3l-1 5 5-6h-3l2-4h-3z' fill='%23ffffff'/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .prose pre { background-color: #09090b; color: #f4f4f5; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; border: 1px solid #27272a; }
-        .prose code { color: #38bdf8; background-color: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; }
-        .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
-        .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #121214; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        .markdown-body p { margin-bottom: 0.5rem; }
+        .markdown-body ul { list-style-type: disc; margin-left: 1.25rem; margin-bottom: 0.5rem; }
+        .markdown-body ol { list-style-type: decimal; margin-left: 1.25rem; margin-bottom: 0.5rem; }
     </style>
 </head>
-<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col">
+<body class="bg-[#121214] text-zinc-200 font-sans antialiased min-h-screen flex flex-col items-center p-4 md:p-6">
 
-    <!-- Header -->
-    <header class="border-b border-zinc-800/80 bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-md shadow-indigo-600/20 font-bold tracking-wider text-sm">
-                    ED
-                </div>
-                <span class="text-lg font-bold bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text text-transparent">EnterpriseDocEngine</span>
+    <!-- Top Navigation -->
+    <header class="w-full max-w-6xl flex justify-between items-center py-4 mb-6 border-b border-zinc-800">
+        <div class="flex items-center space-x-3">
+            <div class="h-9 w-9 bg-emerald-600 rounded-lg flex items-center justify-center font-bold text-white text-sm shadow-md shadow-emerald-900/30">
+                ED
             </div>
-            <div class="flex items-center space-x-4">
-                <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Live Cluster
-                </span>
+            <div>
+                <h1 class="text-base font-semibold text-zinc-100 tracking-tight">EnterpriseDocEngine</h1>
+                <p class="text-[11px] text-zinc-500 font-mono">pgvector &bull; FastMCP &bull; LangGraph &bull; CrewAI</p>
             </div>
+        </div>
+        <div class="flex items-center space-x-2 bg-zinc-900/80 border border-zinc-800 px-3 py-1 rounded-full text-xs text-emerald-400 font-mono">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span>Cluster Live</span>
         </div>
     </header>
 
-    <!-- Main Container -->
-    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-        <!-- Left Column -->
-        <div class="space-y-6">
-            <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 shadow-xl">
-                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Intelligence Engine</h2>
-                <div class="space-y-2">
-                    <label class="flex items-center p-3 rounded-lg border border-zinc-800 bg-zinc-950/70 cursor-pointer hover:border-zinc-700 transition">
-                        <input type="radio" name="engine_mode" value="langgraph" checked class="text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-zinc-900 border-zinc-700">
+    <!-- Main Workspace -->
+    <main class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+        
+        <!-- Left Sidebar: Controls & Ingestion -->
+        <aside class="md:col-span-4 space-y-5">
+            
+            <!-- Engine Selection Card -->
+            <div class="bg-[#18181b] border border-zinc-800/80 rounded-xl p-4 shadow-sm">
+                <h2 class="text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-3">Intelligence Engine</h2>
+                <div class="space-y-2.5">
+                    <label class="flex items-start p-3 rounded-lg border border-zinc-800 bg-[#121214] hover:border-zinc-700 cursor-pointer transition">
+                        <input type="radio" name="engineMode" value="langgraph" checked class="mt-1 accent-emerald-500">
                         <div class="ml-3">
-                            <span class="block text-sm font-medium text-zinc-100">LangGraph Agent</span>
-                            <span class="block text-xs text-zinc-400">Fast hybrid retrieval state machine</span>
+                            <span class="block text-xs font-medium text-zinc-100">LangGraph State Machine</span>
+                            <span class="block text-[11px] text-zinc-400">Deterministic hybrid vector retrieval</span>
                         </div>
                     </label>
-                    <label class="flex items-center p-3 rounded-lg border border-zinc-800 bg-zinc-950/70 cursor-pointer hover:border-zinc-700 transition">
-                        <input type="radio" name="engine_mode" value="crewai" class="text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-zinc-900 border-zinc-700">
+
+                    <label class="flex items-start p-3 rounded-lg border border-zinc-800 bg-[#121214] hover:border-zinc-700 cursor-pointer transition">
+                        <input type="radio" name="engineMode" value="crewai" class="mt-1 accent-emerald-500">
                         <div class="ml-3">
-                            <span class="block text-sm font-medium text-zinc-100">CrewAI Multi-Agent Team</span>
-                            <span class="block text-xs text-zinc-400">Autonomous research & executive synthesis</span>
+                            <span class="block text-xs font-medium text-zinc-100">CrewAI Multi-Agent Team</span>
+                            <span class="block text-[11px] text-zinc-400">Autonomous synthesis & trace execution</span>
                         </div>
                     </label>
                 </div>
             </div>
 
-            <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 shadow-xl">
-                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Ingest Documents</h2>
-                <form id="upload-form" class="space-y-3">
-                    <input type="file" id="file-input" class="block w-full text-xs text-zinc-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700 cursor-pointer" accept=".pdf,.txt">
-                    <button type="submit" id="upload-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-lg shadow-indigo-600/20">
-                        Embed & Store Chunks
+            <!-- Ingestion Card -->
+            <div class="bg-[#18181b] border border-zinc-800/80 rounded-xl p-4 shadow-sm">
+                <h2 class="text-[11px] font-mono uppercase tracking-wider text-zinc-400 mb-3">Ingest Knowledge</h2>
+                <div class="space-y-3">
+                    <input type="file" id="docUploadInput" accept=".pdf,.txt" class="block w-full text-xs text-zinc-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700 cursor-pointer border border-zinc-800 rounded-lg p-1 bg-[#121214]">
+                    
+                    <button id="uploadBtn" onclick="handleDocumentUpload()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 px-3 rounded-lg text-xs transition shadow-sm shadow-emerald-900/20 flex items-center justify-center space-x-2">
+                        <span>Embed & Store Chunks</span>
+                    </button>
+                    <p id="uploadStatusMsg" class="text-[11px] font-mono"></p>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Right: Execution Console -->
+        <section class="md:col-span-8 bg-[#18181b] border border-zinc-800/80 rounded-xl flex flex-col h-[630px] overflow-hidden shadow-sm">
+            
+            <div class="px-4 py-2.5 border-b border-zinc-800 flex justify-between items-center bg-[#141416]">
+                <span class="text-[11px] font-mono uppercase tracking-wider text-zinc-400">Execution Stream</span>
+                <span id="activeModeBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/50 px-2.5 py-0.5 rounded">Engine: LangGraph</span>
+            </div>
+
+            <!-- Message Stream Area -->
+            <div id="chatStream" class="flex-1 overflow-y-auto p-4 space-y-3 text-xs bg-[#121214]/60">
+                <div class="text-zinc-500 text-[11px] italic bg-[#141416] p-3 rounded-lg border border-zinc-800/60">
+                    Query internal vector knowledge. Execution steps will render with multi-agent pipeline traces.
+                </div>
+            </div>
+
+            <!-- Query Input Bar -->
+            <div class="p-3 border-t border-zinc-800 bg-[#141416]">
+                <form onsubmit="handleQuerySubmit(event)" class="flex gap-2">
+                    <input type="text" id="queryInput" placeholder="Ask about architecture, syllabus, or summaries..." class="flex-1 bg-[#121214] border border-zinc-800 rounded-lg px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-emerald-500 transition">
+                    <button type="submit" id="submitBtn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-xs transition shadow-sm shadow-emerald-900/20 flex items-center justify-center">
+                        Run
                     </button>
                 </form>
-                <div id="upload-status" class="mt-3 text-xs hidden"></div>
-            </div>
-        </div>
-
-        <!-- Right Column -->
-        <div class="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 shadow-xl flex flex-col h-[700px]">
-            <div class="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
-                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Agent Execution Console</h2>
-                <span id="current-badge" class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-md font-mono">
-                    Mode: LangGraph
-                </span>
             </div>
 
-            <div id="messages" class="flex-1 overflow-y-auto space-y-4 pr-2">
-                <div class="bg-zinc-950/80 border border-zinc-800/80 p-4 rounded-lg text-sm text-zinc-300">
-                    Select an intelligence engine on the left and query your internal vector index. Execution steps will be rendered with full agent traces.
-                </div>
-            </div>
+        </section>
 
-            <form id="chat-form" class="mt-4 pt-3 border-t border-zinc-800 flex gap-2">
-                <input type="text" id="query-input" placeholder="Ask about syllabus, architecture, or summaries..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
-                <button type="submit" id="send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2 rounded-lg text-sm transition flex items-center gap-2 shadow-md shadow-indigo-600/20">
-                    <span>Send</span>
-                </button>
-            </form>
-        </div>
+    </main>
 
-    </div>
-
+    
     <script>
-        const API_URL = "http://localhost:8000";
-        const messagesContainer = document.getElementById("messages");
-        const chatForm = document.getElementById("chat-form");
-        const queryInput = document.getElementById("query-input");
-        const sendBtn = document.getElementById("send-btn");
-        const uploadForm = document.getElementById("upload-form");
-        const fileInput = document.getElementById("file-input");
-        const uploadStatus = document.getElementById("upload-status");
-        const modeRadios = document.querySelectorAll('input[name="engine_mode"]');
-        const currentBadge = document.getElementById("current-badge");
-
-        modeRadios.forEach(radio => {
+        const API_BASE = "http://localhost:8000";
+        document.querySelectorAll("input[name='engineMode']").forEach(radio => {
             radio.addEventListener("change", (e) => {
-                currentBadge.innerText = e.target.value === "langgraph" ? "Mode: LangGraph" : "Mode: CrewAI";
+                const modeName = e.target.value === "langgraph" ? "LangGraph" : "CrewAI Multi-Agent";
+                document.getElementById("activeModeBadge").innerText = `Engine: ${modeName}`;
             });
         });
 
-        function appendUserMessage(text) {
-            const wrapper = document.createElement("div");
-            wrapper.className = "flex justify-end";
-            wrapper.innerHTML = `<div class="bg-indigo-600 text-white rounded-lg p-3 max-w-[85%] text-sm shadow-md">${text}</div>`;
-            messagesContainer.appendChild(wrapper);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        function appendAgentResponse(contentMarkdown, traceData, mode) {
-            const wrapper = document.createElement("div");
-            wrapper.className = "flex justify-start w-full";
-
-            let traceHtml = "";
-            if (mode === "crewai" && traceData) {
-                traceHtml = `
-                    <details class="mb-3 bg-zinc-900 border border-zinc-700/60 rounded-md p-2.5 text-xs text-zinc-300">
-                        <summary class="font-mono text-indigo-400 font-semibold cursor-pointer select-none flex items-center justify-between">
-                            <span>🔍 Multi-Agent Collaboration Trace (${traceData.framework})</span>
-                            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">${traceData.total_agents} Agents Involved</span>
-                        </summary>
-                        <div class="mt-2.5 space-y-2 border-t border-zinc-800 pt-2 font-mono">
-                            ${traceData.pipeline.map(step => `
-                                <div class="bg-zinc-950 p-2 rounded border border-zinc-800">
-                                    <div class="text-emerald-400 font-bold">🤖 Agent: ${step.agent}</div>
-                                    <div class="text-zinc-400 text-[11px] mt-0.5">⚡ Action: ${step.action}</div>
-                                    <div class="text-zinc-500 text-[10px] mt-0.5">Status: ${step.status}</div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </details>
-                `;
-            } else if (mode === "langgraph") {
-                traceHtml = `
-                    <details class="mb-3 bg-zinc-900 border border-zinc-700/60 rounded-md p-2.5 text-xs text-zinc-300">
-                        <summary class="font-mono text-sky-400 font-semibold cursor-pointer select-none">
-                            🔍 LangGraph State Machine Execution Trace
-                        </summary>
-                        <div class="mt-2 space-y-1 border-t border-zinc-800 pt-2 font-mono text-[11px] text-zinc-400">
-                            <div>• Node 1: Evaluated query context in pgvector</div>
-                            <div>• Node 2: Applied hybrid cosine similarity filter</div>
-                            <div>• Node 3: Synthesized deterministic prompt completion</div>
-                        </div>
-                    </details>
-                `;
+        async function handleDocumentUpload() {
+            const fileInput = document.getElementById("docUploadInput");
+            const statusMsg = document.getElementById("uploadStatusMsg");
+            const uploadBtn = document.getElementById("uploadBtn");
+            if (!fileInput.files.length) {
+                statusMsg.className = "text-[11px] text-amber-400";
+                statusMsg.innerText = "Please select a file first.";
+                return;
             }
 
-            wrapper.innerHTML = `
-                <div class="bg-zinc-950 border border-zinc-800 text-zinc-200 rounded-lg p-4 max-w-[95%] text-sm w-full shadow-md">
-                    ${traceHtml}
-                    <div class="prose prose-invert max-w-none">${marked.parse(contentMarkdown)}</div>
-                </div>
-            `;
-
-            messagesContainer.appendChild(wrapper);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        chatForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const query = queryInput.value.trim();
-            if (!query) return;
-
-            const selectedMode = document.querySelector('input[name="engine_mode"]:checked').value;
-
-            appendUserMessage(query);
-            queryInput.value = "";
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = `<span>Thinking...</span>`;
-
-            const loadingId = "loading-" + Date.now();
-            const loadingWrapper = document.createElement("div");
-            loadingWrapper.id = loadingId;
-            loadingWrapper.className = "flex justify-start";
-            loadingWrapper.innerHTML = `
-                <div class="bg-zinc-950 border border-zinc-800 text-zinc-400 rounded-lg p-3 text-xs italic flex items-center gap-2">
-                    <span class="animate-spin h-3.5 w-3.5 border-2 border-indigo-400 border-t-transparent rounded-full"></span>
-                    ${selectedMode === 'langgraph' ? 'LangGraph Agent routing query...' : 'CrewAI Multi-Agents researching & reviewing...'}
-                </div>
-            `;
-            messagesContainer.appendChild(loadingWrapper);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            uploadBtn.disabled = true;
+            uploadBtn.classList.add("opacity-50");
+            statusMsg.className = "text-[11px] text-emerald-400";
+            statusMsg.innerText = "Indexing chunks...";
 
             try {
-                const endpoint = selectedMode === "langgraph" ? `${API_URL}/agent/chat` : `${API_URL}/crew/analyze`;
-                const response = await fetch(endpoint, {
+                const res = await fetch(`${API_BASE}/documents/upload`, { method: "POST", body: formData });
+                const data = await res.json();
+                if (res.ok) {
+                    statusMsg.className = "text-[11px] text-emerald-400";
+                    statusMsg.innerText = `Uploaded ${data.chunks_created} chunks.`;
+                    fileInput.value = "";
+                } else {
+                    throw new Error(data.detail || "Upload failed");
+                }
+            } catch (err) {
+                statusMsg.className = "text-[11px] text-rose-400";
+                statusMsg.innerText = `Error: ${err.message}`;
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.classList.remove("opacity-50");
+            }
+        }
+
+        async function handleQuerySubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById("queryInput");
+            const query = input.value.trim();
+            if (!query) return;
+
+            const mode = document.querySelector("input[name='engineMode']:checked").value;
+            const chatStream = document.getElementById("chatStream");
+            const submitBtn = document.getElementById("submitBtn");
+
+            const userBubble = document.createElement("div");
+            userBubble.className = "flex justify-end";
+            userBubble.innerHTML = `<div class="bg-emerald-600 text-white rounded-lg px-3 py-2 max-w-[80%] shadow-sm">${query}</div>`;
+            chatStream.appendChild(userBubble);
+            input.value = "";
+            chatStream.scrollTop = chatStream.scrollHeight;
+
+            submitBtn.disabled = true;
+            const loadingBubble = document.createElement("div");
+            loadingBubble.className = "flex justify-start";
+            loadingBubble.innerHTML = `<div class="bg-[#141416] border border-zinc-800 text-zinc-400 rounded-lg px-3 py-2 text-xs font-mono flex items-center space-x-2">
+                <span class="animate-spin text-emerald-400">&#9696;</span>
+                <span>Agents analyzing knowledge base...</span>
+            </div>`;
+            chatStream.appendChild(loadingBubble);
+            chatStream.scrollTop = chatStream.scrollHeight;
+
+            try {
+                const endpoint = mode === "langgraph" ? "/agent/chat" : "/crew/analyze";
+                const res = await fetch(`${API_BASE}${endpoint}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ query: query })
                 });
+                const data = await res.json();
+                chatStream.removeChild(loadingBubble);
 
-                const data = await response.json();
-                document.getElementById(loadingId)?.remove();
+                const botBubble = document.createElement("div");
+                botBubble.className = "flex flex-col space-y-2 max-w-[95%]";
 
-                if (response.ok) {
-                    const resultText = selectedMode === "langgraph" ? data.response : data.analysis;
-                    appendAgentResponse(resultText, data.trace, selectedMode);
-                } else {
-                    const errWrapper = document.createElement("div");
-                    errWrapper.className = "flex justify-start";
-                    errWrapper.innerHTML = `<div class="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg p-3 text-sm">⚠️ Error: ${data.detail || "Failed to fetch response"}</div>`;
-                    messagesContainer.appendChild(errWrapper);
+                if (mode === "crewai" && data.trace) {
+                    let traceRows = data.trace.pipeline.map(step => `
+                        <div class="border-b border-zinc-800 pb-1.5 last:border-b-0">
+                            <span class="text-emerald-400 font-medium font-mono">${step.agent}</span>: 
+                            <span class="text-zinc-300 font-mono text-[11px]">${step.action}</span>
+                        </div>
+                    `).join("");
+
+                    botBubble.innerHTML += `
+                        <div class="bg-[#141416] border border-zinc-800 rounded-lg p-2.5 text-[11px]">
+                            <div class="text-zinc-400 font-mono mb-1.5 text-[10px] uppercase tracking-wider font-semibold">Multi-Agent Trace (${data.trace.framework})</div>
+                            <div class="space-y-1">${traceRows}</div>
+                        </div>
+                    `;
                 }
+
+                const answerContent = mode === "langgraph" ? data.response : data.analysis;
+                botBubble.innerHTML += `<div class="bg-[#141416] border border-zinc-800 rounded-lg p-3 text-zinc-200 markdown-body leading-relaxed">${marked.parse(answerContent)}</div>`;
+                chatStream.appendChild(botBubble);
             } catch (err) {
-                document.getElementById(loadingId)?.remove();
-                const errWrapper = document.createElement("div");
-                errWrapper.className = "flex justify-start";
-                errWrapper.innerHTML = `<div class="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg p-3 text-sm">⚠️ Network Error: ${err.message}</div>`;
-                messagesContainer.appendChild(errWrapper);
+                if (loadingBubble.parentNode) chatStream.removeChild(loadingBubble);
+                const errBubble = document.createElement("div");
+                errBubble.className = "text-xs text-rose-400 bg-rose-950/20 border border-rose-900/40 p-2.5 rounded-lg";
+                errBubble.innerText = `Request Failed: ${err.message}`;
+                chatStream.appendChild(errBubble);
             } finally {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = `<span>Send</span>`;
+                submitBtn.disabled = false;
+                chatStream.scrollTop = chatStream.scrollHeight;
             }
-        });
-
-        uploadForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const file = fileInput.files[0];
-            if (!file) return;
-
-            const formData = new FormData();
-            formData.append("file", file);
-
-            uploadStatus.classList.remove("hidden");
-            uploadStatus.innerHTML = `<span class="text-indigo-400">Uploading and chunking document...</span>`;
-
-            try {
-                const res = await fetch(`${API_URL}/documents/upload`, {
-                    method: "POST",
-                    body: formData
-                });
-                const resData = await res.json();
-                if (res.ok) {
-                    uploadStatus.innerHTML = `<span class="text-emerald-400">✓ Ingested ${resData.chunks_created} chunks into pgvector!</span>`;
-                    fileInput.value = "";
-                } else {
-                    uploadStatus.innerHTML = `<span class="text-rose-400">⚠️ Upload failed: ${resData.detail}</span>`;
-                }
-            } catch (err) {
-                uploadStatus.innerHTML = `<span class="text-rose-400">⚠️ Upload error: ${err.message}</span>`;
-            }
-        });
+        }
     </script>
 </body>
 </html>
