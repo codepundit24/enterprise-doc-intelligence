@@ -117,7 +117,7 @@ docker compose exec -e PYTHONPATH=/app api-service pytest tests/test_enterprise_
 ```
 
 ## 📂 Project Structure
-
+```text
 EnterpriseDocEngine/
 ├── backend/
 │   ├── app/
@@ -138,7 +138,7 @@ EnterpriseDocEngine/
 ├── docker-compose.yml
 ├── .env
 └── README.md
-
+```
 
 
 ## 🔌 API Endpoints
