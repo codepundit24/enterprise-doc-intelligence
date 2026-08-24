@@ -1,11 +1,11 @@
 import io
 import pytest
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 from app.main import app
 from app.database import SessionLocal, engine, Base, init_db
-from app.models import DocumentChunk, Document
+from app.models import Document, DocumentChunk
 from sentence_transformers import SentenceTransformer
-from unittest.mock import patch
 
 client = TestClient(app)
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -16,33 +16,32 @@ def setup_test_db():
     yield
     db = SessionLocal()
     try:
-        # Clean mock test records after test complete
         db.query(Document).filter(Document.filename == "pytest_sample.txt").delete()
         db.commit()
     finally:
         db.close()
 
-# test health /root endpoint
+# 1. Test Health / Root UI Endpoint
 def test_health_check():
     response = client.get("/")
     assert response.status_code == 200
     assert "EnterpriseDocEngine" in response.text
 
-# test document ingestion and chunk vectorization
+# 2. Test Document Ingestion & Chunk Vectorization
 def test_document_ingestion():
-    mock_file_content = b"Microservices architecture with kubernetes enables horizontal auto-scaling and pod ressilience"
+    mock_file_content = b"Microservices architecture with Kubernetes enables horizontal auto-scaling and pod resilience."
     file_obj = io.BytesIO(mock_file_content)
 
     response = client.post(
         "/documents/upload",
-        files={"file": ("pytest_sample.txt", file_obj, " text/plain")}
+        files={"file": ("pytest_sample.txt", file_obj, "text/plain")}
     )
     assert response.status_code == 200
     data = response.json()
     assert data["filename"] == "pytest_sample.txt"
-    assert data["chunks_created"]>0
+    assert data["chunks_created"] > 0
 
-# test pgvector semantic similarity retrieval
+# 3. Test pgvector Semantic Similarity Retrieval
 def test_vector_similarity_search():
     db = SessionLocal()
     try:
@@ -56,31 +55,30 @@ def test_vector_similarity_search():
         )
         assert match is not None
         assert "horizontal auto-scaling" in match.content
-
     finally:
         db.close()
 
-#Test fastmcp / agent route response integrity
+# 4. Test LangGraph Agent Endpoint (Mocking Ollama HTTP Dependency)
 def test_agent_chat_endpoint():
-    mock_response = "Kubernetes provides high availability and automated failover for application pods"
-    with patch("app.agents.langgraph_agent.app_workflow.invoke", return_value = {"final answer": mock_response}):
+    mock_response = "Kubernetes provides high availability and automated failover for application pods."
+    with patch("app.agents.langgraph_agent.app_workflow.invoke", return_value={"final_answer": mock_response}):
         response = client.post(
             "/agent/chat",
-            json={"query":"Explain Kubernetes pod resilience"}
+            json={"query": "Explain Kubernetes pod resilience"}
         )
         assert response.status_code == 200
         json_data = response.json()
         assert "response" in json_data
         assert len(json_data["response"]) > 10
 
-# Test crewAi multi agent endpoint contract
+# 5. Test CrewAI Multi-Agent Endpoint Contract (Mocking OpenAI API Calls)
 def test_crewai_endpoint_structure():
     mock_crew_output = {
-        "analysis": "Executive Overview: Architecture features verified",
+        "analysis": "Executive Overview: Architecture features verified.",
         "trace": {
-            "framework": "Crewai (Sequential multi- agent process)",
+            "framework": "CrewAI (Sequential Multi-Agent Process)",
             "pipeline": [
-               {"agent": "Senior Technical Researcher", "action": "Searched pgvector", "status": "Done"},
+                {"agent": "Senior Technical Researcher", "action": "Searched pgvector", "status": "Done"},
                 {"agent": "Principal Enterprise Consultant", "action": "Formatted summary", "status": "Done"}
             ],
             "total_agents": 2
@@ -91,7 +89,7 @@ def test_crewai_endpoint_structure():
             "/crew/analyze",
             json={"query": "Summarize architecture features"}
         )
-        assert response.status_code==200
+        assert response.status_code == 200
         json_data = response.json()
         assert json_data["status"] == "success"
         assert "analysis" in json_data
