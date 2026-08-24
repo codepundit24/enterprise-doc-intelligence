@@ -61,7 +61,7 @@ def test_vector_similarity_search():
 # 4. Test LangGraph Agent Endpoint (Mocking Ollama HTTP Dependency)
 def test_agent_chat_endpoint():
     mock_response = "Kubernetes provides high availability and automated failover for application pods."
-    with patch("app.agents.langgraph_agent.app_workflow.invoke", return_value={"final_answer": mock_response}):
+    with patch("app.main.run_agent_query", return_value={"final_answer": mock_response}):
         response = client.post(
             "/agent/chat",
             json={"query": "Explain Kubernetes pod resilience"}
@@ -74,6 +74,7 @@ def test_agent_chat_endpoint():
 # 5. Test CrewAI Multi-Agent Endpoint Contract (Mocking OpenAI API Calls)
 def test_crewai_endpoint_structure():
     mock_crew_output = {
+        "status": "success",
         "analysis": "Executive Overview: Architecture features verified.",
         "trace": {
             "framework": "CrewAI (Sequential Multi-Agent Process)",
@@ -84,7 +85,7 @@ def test_crewai_endpoint_structure():
             "total_agents": 2
         }
     }
-    with patch("app.agents.crew_analyst.run_crew_pipeline", return_value=mock_crew_output):
+    with patch("app.main.run_crew_pipeline", return_value=mock_crew_output):
         response = client.post(
             "/crew/analyze",
             json={"query": "Summarize architecture features"}
