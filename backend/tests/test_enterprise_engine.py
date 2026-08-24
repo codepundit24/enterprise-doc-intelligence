@@ -61,7 +61,7 @@ def test_vector_similarity_search():
 # 4. Test LangGraph Agent Endpoint (Mocking Ollama HTTP Dependency)
 def test_agent_chat_endpoint():
     mock_response = "Kubernetes provides high availability and automated failover for application pods."
-    with patch("app.main.run_agent_query", return_value={"final_answer": mock_response}):
+    with patch("app.main.agent_app.invoke", return_value={"final_answer": mock_response}):
         response = client.post(
             "/agent/chat",
             json={"query": "Explain Kubernetes pod resilience"}
