@@ -4,9 +4,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List
 from pydantic import BaseModel
+from app.agents.langgraph_agent import agent_app
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 
+from app.agents.crew_analyst import run_crew_pipeline
 from app.database import get_db, init_db
 from app.models import Document, DocumentChunk
 from app.services import extract_text_from_pdf, chunk_text, generate_embeddings
@@ -23,6 +26,14 @@ app = FastAPI(title="Enterprise Document Intelligence & Semantic Search Engine",
               version="1.0.0",
               lifespan=lifespan
  )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 @app.get("/health")
 def health_check():
@@ -118,3 +129,27 @@ def search_documents(request: SearchRequest, db: Session = Depends(get_db)):
             for row in results
         ]
     }
+
+class AgentQueryRequest(BaseModel):
+    query:str
+
+@app.post("/agent/chat")
+def chat_with_agent(req: AgentQueryRequest):
+    result = agent_app.invoke({"query": req.query})
+    return{
+        "query": req.query,
+        "response": result["final_answer"],
+        "retrieved_context": result.get("retrieved_context", "")
+    }
+
+class CrewRequest(BaseModel):
+    query:str
+
+@app.post("/crew/analyze")
+def analyze_with_crew(request:CrewRequest):
+    result = run_crew_pipeline(request.query)
+    return { 
+        "status": "success",
+        "analysis": result["analysis"],
+        "trace": result["trace"]
+        }

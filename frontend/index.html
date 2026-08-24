@@ -3,115 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Doc Intelligence</title>
+    <title>Enterprise RAG & Multi-Agent Intelligence</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%234f46e5'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='46' font-weight='800' fill='white'>ED</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .prose pre { background-color: #09090b; color: #f4f4f5; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; border: 1px solid #27272a; }
+        .prose code { color: #38bdf8; background-color: #18181b; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; }
+        .prose ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .prose ol { list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+    </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
-    <div class="max-w-5xl mx-auto py-10 px-4">
-    <header class="mb-10 text-center">
-      <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Enterprise Document Intelligence</h1>
-      <p class="text-slate-400">PostgreSQL + pgvector Semantic Search & Document Ingestion Engine</p>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="border-b border-zinc-800/80 bg-zinc-900/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-md shadow-indigo-600/20 font-bold tracking-wider text-sm">
+                    ED
+                </div>
+                <span class="text-lg font-bold bg-gradient-to-r from-zinc-100 to-zinc-400 bg-clip-text text-transparent">EnterpriseDocEngine</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span> Live Cluster
+                </span>
+            </div>
+        </div>
     </header>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Upload Card -->
-      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-        <h2 class="text-lg font-semibold text-sky-400 mb-4">1. Ingest Document (PDF / TXT)</h2>
-        <form id="uploadForm" class="space-y-4">
-          <input type="file" id="docFile" accept=".pdf,.txt" class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-sky-600 file:text-white hover:file:bg-sky-500 cursor-pointer" required />
-          <button type="submit" id="uploadBtn" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2 rounded-md transition duration-200">Upload & Vectorize</button>
-        </form>
-        <div id="uploadStatus" class="mt-4 text-sm hidden"></div>
-      </div>
+    <!-- Main Container -->
+    <div class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      <!-- Search Card -->
-      <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-lg">
-        <h2 class="text-lg font-semibold text-emerald-400 mb-4">2. Semantic Search Query</h2>
-        <form id="searchForm" class="space-y-4">
-          <input type="text" id="queryInput" placeholder="Ask a question or enter topic..." class="w-full bg-slate-900 border border-slate-700 rounded-md px-4 py-2 text-sm text-white focus:outline-none focus:border-emerald-500" required />
-          <div class="flex space-x-4">
-            <input type="number" id="topKInput" min="1" max="10" value="3" class="w-24 bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-white text-center" />
-            <button type="submit" id="searchBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-md transition duration-200">Search Engine</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Results Section -->
-    <div class="mt-10">
-      <h3 class="text-xl font-semibold text-slate-200 mb-4">Retrieved Context & Chunks</h3>
-      <div id="resultsContainer" class="space-y-4">
-        <p class="text-sm text-slate-500 italic">No search executed yet.</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const uploadForm = document.getElementById('uploadForm');
-    const uploadStatus = document.getElementById('uploadStatus');
-    const searchForm = document.getElementById('searchForm');
-    const resultsContainer = document.getElementById('resultsContainer');
-
-    uploadForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fileInput = document.getElementById('docFile');
-      if (!fileInput.files[0]) return;
-
-      const formData = new FormData();
-      formData.append('file', fileInput.files[0]);
-
-      uploadStatus.className = 'mt-4 text-sm text-amber-400 block';
-      uploadStatus.innerText = 'Extracting text & generating vectors...';
-
-      try {
-        const res = await fetch('/documents/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (res.ok) {
-          uploadStatus.className = 'mt-4 text-sm text-emerald-400 block';
-          uploadStatus.innerText = `Success: ${data.filename} indexed into ${data.chunks_created} vector chunks!`;
-          uploadForm.reset();
-        } else {
-          uploadStatus.className = 'mt-4 text-sm text-rose-400 block';
-          uploadStatus.innerText = data.detail || 'Upload failed.';
-        }
-      } catch (err) {
-        uploadStatus.className = 'mt-4 text-sm text-rose-400 block';
-        uploadStatus.innerText = 'Server connection error.';
-      }
-    });
-
-    searchForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const query = document.getElementById('queryInput').value;
-      const top_k = parseInt(document.getElementById('topKInput').value, 10);
-
-      resultsContainer.innerHTML = '<p class="text-sm text-slate-400">Executing pgvector cosine search...</p>';
-
-      try {
-        const res = await fetch('/documents/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, top_k })
-        });
-        const data = await res.json();
-        
-        if (res.ok && data.results.length > 0) {
-          resultsContainer.innerHTML = data.results.map(r => `
-            <div class="bg-slate-800 border border-slate-700 p-4 rounded-lg">
-              <div class="flex justify-between items-center mb-2">
-                <span class="text-xs font-mono bg-sky-950 text-sky-300 px-2 py-0.5 rounded border border-sky-800">${r.filename} (Chunk #${r.chunk_id})</span>
-                <span class="text-xs font-semibold text-emerald-400">Score: ${(r.similarity_score * 100).toFixed(1)}% match</span>
-              </div>
-              <p class="text-sm text-slate-300 leading-relaxed whitespace-pre-line">${r.content}</p>
+        <!-- Left Column -->
+        <div class="space-y-6">
+            <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 shadow-xl">
+                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Intelligence Engine</h2>
+                <div class="space-y-2">
+                    <label class="flex items-center p-3 rounded-lg border border-zinc-800 bg-zinc-950/70 cursor-pointer hover:border-zinc-700 transition">
+                        <input type="radio" name="engine_mode" value="langgraph" checked class="text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-zinc-900 border-zinc-700">
+                        <div class="ml-3">
+                            <span class="block text-sm font-medium text-zinc-100">LangGraph Agent</span>
+                            <span class="block text-xs text-zinc-400">Fast hybrid retrieval state machine</span>
+                        </div>
+                    </label>
+                    <label class="flex items-center p-3 rounded-lg border border-zinc-800 bg-zinc-950/70 cursor-pointer hover:border-zinc-700 transition">
+                        <input type="radio" name="engine_mode" value="crewai" class="text-indigo-600 focus:ring-indigo-500 h-4 w-4 bg-zinc-900 border-zinc-700">
+                        <div class="ml-3">
+                            <span class="block text-sm font-medium text-zinc-100">CrewAI Multi-Agent Team</span>
+                            <span class="block text-xs text-zinc-400">Autonomous research & executive synthesis</span>
+                        </div>
+                    </label>
+                </div>
             </div>
-          `).join('');
-        } else {
-          resultsContainer.innerHTML = '<p class="text-sm text-slate-400">No matching documents found.</p>';
+
+            <div class="bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 shadow-xl">
+                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">Ingest Documents</h2>
+                <form id="upload-form" class="space-y-3">
+                    <input type="file" id="file-input" class="block w-full text-xs text-zinc-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-800 file:text-zinc-200 hover:file:bg-zinc-700 cursor-pointer" accept=".pdf,.txt">
+                    <button type="submit" id="upload-btn" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 px-4 rounded-lg text-sm transition shadow-lg shadow-indigo-600/20">
+                        Embed & Store Chunks
+                    </button>
+                </form>
+                <div id="upload-status" class="mt-3 text-xs hidden"></div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="lg:col-span-2 bg-zinc-900/90 border border-zinc-800 rounded-xl p-5 shadow-xl flex flex-col h-[700px]">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-800 mb-4">
+                <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Agent Execution Console</h2>
+                <span id="current-badge" class="text-xs bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2.5 py-1 rounded-md font-mono">
+                    Mode: LangGraph
+                </span>
+            </div>
+
+            <div id="messages" class="flex-1 overflow-y-auto space-y-4 pr-2">
+                <div class="bg-zinc-950/80 border border-zinc-800/80 p-4 rounded-lg text-sm text-zinc-300">
+                    Select an intelligence engine on the left and query your internal vector index. Execution steps will be rendered with full agent traces.
+                </div>
+            </div>
+
+            <form id="chat-form" class="mt-4 pt-3 border-t border-zinc-800 flex gap-2">
+                <input type="text" id="query-input" placeholder="Ask about syllabus, architecture, or summaries..." class="flex-1 bg-zinc-950 border border-zinc-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+                <button type="submit" id="send-btn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-5 py-2 rounded-lg text-sm transition flex items-center gap-2 shadow-md shadow-indigo-600/20">
+                    <span>Send</span>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8000";
+        const messagesContainer = document.getElementById("messages");
+        const chatForm = document.getElementById("chat-form");
+        const queryInput = document.getElementById("query-input");
+        const sendBtn = document.getElementById("send-btn");
+        const uploadForm = document.getElementById("upload-form");
+        const fileInput = document.getElementById("file-input");
+        const uploadStatus = document.getElementById("upload-status");
+        const modeRadios = document.querySelectorAll('input[name="engine_mode"]');
+        const currentBadge = document.getElementById("current-badge");
+
+        modeRadios.forEach(radio => {
+            radio.addEventListener("change", (e) => {
+                currentBadge.innerText = e.target.value === "langgraph" ? "Mode: LangGraph" : "Mode: CrewAI";
+            });
+        });
+
+        function appendUserMessage(text) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "flex justify-end";
+            wrapper.innerHTML = `<div class="bg-indigo-600 text-white rounded-lg p-3 max-w-[85%] text-sm shadow-md">${text}</div>`;
+            messagesContainer.appendChild(wrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-      } catch (err) {
-        resultsContainer.innerHTML = '<p class="text-sm text-rose-400">Search execution failed.</p>';
-      }
-    });
-  </script>
+
+        function appendAgentResponse(contentMarkdown, traceData, mode) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "flex justify-start w-full";
+
+            let traceHtml = "";
+            if (mode === "crewai" && traceData) {
+                traceHtml = `
+                    <details class="mb-3 bg-zinc-900 border border-zinc-700/60 rounded-md p-2.5 text-xs text-zinc-300">
+                        <summary class="font-mono text-indigo-400 font-semibold cursor-pointer select-none flex items-center justify-between">
+                            <span>🔍 Multi-Agent Collaboration Trace (${traceData.framework})</span>
+                            <span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">${traceData.total_agents} Agents Involved</span>
+                        </summary>
+                        <div class="mt-2.5 space-y-2 border-t border-zinc-800 pt-2 font-mono">
+                            ${traceData.pipeline.map(step => `
+                                <div class="bg-zinc-950 p-2 rounded border border-zinc-800">
+                                    <div class="text-emerald-400 font-bold">🤖 Agent: ${step.agent}</div>
+                                    <div class="text-zinc-400 text-[11px] mt-0.5">⚡ Action: ${step.action}</div>
+                                    <div class="text-zinc-500 text-[10px] mt-0.5">Status: ${step.status}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                `;
+            } else if (mode === "langgraph") {
+                traceHtml = `
+                    <details class="mb-3 bg-zinc-900 border border-zinc-700/60 rounded-md p-2.5 text-xs text-zinc-300">
+                        <summary class="font-mono text-sky-400 font-semibold cursor-pointer select-none">
+                            🔍 LangGraph State Machine Execution Trace
+                        </summary>
+                        <div class="mt-2 space-y-1 border-t border-zinc-800 pt-2 font-mono text-[11px] text-zinc-400">
+                            <div>• Node 1: Evaluated query context in pgvector</div>
+                            <div>• Node 2: Applied hybrid cosine similarity filter</div>
+                            <div>• Node 3: Synthesized deterministic prompt completion</div>
+                        </div>
+                    </details>
+                `;
+            }
+
+            wrapper.innerHTML = `
+                <div class="bg-zinc-950 border border-zinc-800 text-zinc-200 rounded-lg p-4 max-w-[95%] text-sm w-full shadow-md">
+                    ${traceHtml}
+                    <div class="prose prose-invert max-w-none">${marked.parse(contentMarkdown)}</div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(wrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        chatForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            const selectedMode = document.querySelector('input[name="engine_mode"]:checked').value;
+
+            appendUserMessage(query);
+            queryInput.value = "";
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = `<span>Thinking...</span>`;
+
+            const loadingId = "loading-" + Date.now();
+            const loadingWrapper = document.createElement("div");
+            loadingWrapper.id = loadingId;
+            loadingWrapper.className = "flex justify-start";
+            loadingWrapper.innerHTML = `
+                <div class="bg-zinc-950 border border-zinc-800 text-zinc-400 rounded-lg p-3 text-xs italic flex items-center gap-2">
+                    <span class="animate-spin h-3.5 w-3.5 border-2 border-indigo-400 border-t-transparent rounded-full"></span>
+                    ${selectedMode === 'langgraph' ? 'LangGraph Agent routing query...' : 'CrewAI Multi-Agents researching & reviewing...'}
+                </div>
+            `;
+            messagesContainer.appendChild(loadingWrapper);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                const endpoint = selectedMode === "langgraph" ? `${API_URL}/agent/chat` : `${API_URL}/crew/analyze`;
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ query: query })
+                });
+
+                const data = await response.json();
+                document.getElementById(loadingId)?.remove();
+
+                if (response.ok) {
+                    const resultText = selectedMode === "langgraph" ? data.response : data.analysis;
+                    appendAgentResponse(resultText, data.trace, selectedMode);
+                } else {
+                    const errWrapper = document.createElement("div");
+                    errWrapper.className = "flex justify-start";
+                    errWrapper.innerHTML = `<div class="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg p-3 text-sm">⚠️ Error: ${data.detail || "Failed to fetch response"}</div>`;
+                    messagesContainer.appendChild(errWrapper);
+                }
+            } catch (err) {
+                document.getElementById(loadingId)?.remove();
+                const errWrapper = document.createElement("div");
+                errWrapper.className = "flex justify-start";
+                errWrapper.innerHTML = `<div class="bg-rose-950/50 border border-rose-800 text-rose-300 rounded-lg p-3 text-sm">⚠️ Network Error: ${err.message}</div>`;
+                messagesContainer.appendChild(errWrapper);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `<span>Send</span>`;
+            }
+        });
+
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("file", file);
+
+            uploadStatus.classList.remove("hidden");
+            uploadStatus.innerHTML = `<span class="text-indigo-400">Uploading and chunking document...</span>`;
+
+            try {
+                const res = await fetch(`${API_URL}/documents/upload`, {
+                    method: "POST",
+                    body: formData
+                });
+                const resData = await res.json();
+                if (res.ok) {
+                    uploadStatus.innerHTML = `<span class="text-emerald-400">✓ Ingested ${resData.chunks_created} chunks into pgvector!</span>`;
+                    fileInput.value = "";
+                } else {
+                    uploadStatus.innerHTML = `<span class="text-rose-400">⚠️ Upload failed: ${resData.detail}</span>`;
+                }
+            } catch (err) {
+                uploadStatus.innerHTML = `<span class="text-rose-400">⚠️ Upload error: ${err.message}</span>`;
+            }
+        });
+    </script>
 </body>
 </html>

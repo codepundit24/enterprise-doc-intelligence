@@ -33,8 +33,10 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres_admin:secure_vector_password@postgres-db:5432/doc_intelligence
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - ./backend/app:/app/app
+      - ./backend/tests:/app/tests
       - ./frontend:/app/frontend
       - huggingface_cache:/root/.cache/huggingface
 
