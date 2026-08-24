@@ -2,7 +2,7 @@ import io
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.database import SessionLocal, engine, Base
+from app.database import SessionLocal, engine, Base, init_db
 from app.models import DocumentChunk, Document
 from sentence_transformers import SentenceTransformer
 
@@ -11,7 +11,7 @@ embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_test_db():
-    Base.metadata.create_all(bind=engine)
+    init_db()
     yield
     db = SessionLocal()
     try:
