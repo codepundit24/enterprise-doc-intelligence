@@ -51,7 +51,7 @@ jobs:
           DATABASE_URL: postgresql://postgres_admin:secure_vector_password@localhost:5432/doc_intelligence
         run: |
           cd backend
-          pytest -v test_main.py
+          PYTHONPATH=. pytest tests/test_enterprise_engine.py -v
 
       - name: Validate Multi-Stage Docker Build
         run: |
