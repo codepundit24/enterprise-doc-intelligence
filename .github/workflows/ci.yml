@@ -49,6 +49,7 @@ jobs:
       - name: Run Pytest Test Suite
         env:
           DATABASE_URL: postgresql://postgres_admin:secure_vector_password@localhost:5432/doc_intelligence
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'sk-mock-key-for-unit-tests-12345' }}
         run: |
           cd backend
           PYTHONPATH=. pytest tests/test_enterprise_engine.py -v

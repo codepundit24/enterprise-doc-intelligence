@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.getenv(
-    "DATABSE_URL",
+    "DATABASE_URL",
     "postgresql://postgres_admin:secure_vector_password@postgres-db:5432/doc_intelligence"
 )
 
